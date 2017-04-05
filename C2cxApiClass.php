@@ -1,5 +1,4 @@
 <?php
-
 /*
  * C2CX API PHP Class for Api v1
  *
@@ -24,7 +23,7 @@ class C2cxApi
     private $apiKey;
     private $secretKey;
     private $apiEndPoint;
-    private $header;
+    private $headers;
 
     // Constructor
     public function __construct($apiKey, $secretKey)
@@ -152,10 +151,15 @@ class C2cxApi
     }
 
 
+    public function submitTradeOrder($symbol, $side, $price, $amount, $advanced=false)
     /*
      * Trade (buy/sell)
      *
-     * Set $advanced to false if not advanced order, else pass an object
+     * Set $advanced to false if not advanced order, else pass an object.
+     *
+     * $side is case sensitive on the API side, must be 'Buy' or 'Sell' but
+     * here we deal with all other cases so you can call this method using
+     * $side in any case.
      *
      * If you get an orderId the order has made it into the Order Book.
      *
@@ -170,7 +174,17 @@ class C2cxApi
      * }
      *
      */
-    public function submitTradeOrder($symbol, $type, $price, $amount, $advanced=false) {
+    {
+
+        // Deal with $side case sensitivity
+        $side = strtolower($side);
+        if ($side == 'buy') {
+            $side = 'Buy';
+        }
+        if ($side == 'sell') {
+            $side = 'Sell';
+        }
+
         // Advanced Order
         if ($advanced) {
             $parametersArray = array(
@@ -179,7 +193,7 @@ class C2cxApi
                 'price' => $price,
                 'symbol' => $symbol,
                 'priceTypeId' => 1,
-                'orderType' => $type,
+                'orderType' => $side,
                 'isAdvanceOrder' => 1,
                 'takeProfit' => $advanced->takeProfit,
                 'stopLoss' => $advanced->stopLoss,
@@ -194,7 +208,7 @@ class C2cxApi
                 'price' => $price,
                 'symbol' => $symbol,
                 'priceTypeId' => 1,
-                'orderType' => $type,
+                'orderType' => $side,
                 'isAdvanceOrder' => 0,
             );
         }
@@ -204,9 +218,32 @@ class C2cxApi
         return $data;
     }
 
-    // Check Open Orders
-    public function checkOrders($symbol, $orderId = -1) {
 
+    public function checkOrders($symbol, $orderId = -1)
+    /*
+     * Check on order status.
+     *
+     * See also method: getOrderStatusString($statusId) for what various
+     * statuses mean.
+     *
+     * API returns:
+     *
+     * {
+     *	    "code": 200,
+     *	    "message": "success",
+     *	    "data": [{
+     *	    	"amount": 48.21,
+     *	    	"avgPrice": 80.8,
+     *	    	"createDate": 1467186908787,
+     *	    	"orderId": 243506,
+     *	    	"price": 100,
+     *	    	"status": 5,
+     *	    	"type": "buy"
+     *	    }]
+     * }
+     *
+     */
+    {
         $parametersArray = array(
 
             'apiKey' => $this->apiKey,
@@ -219,9 +256,40 @@ class C2cxApi
         return $data;
     }
 
-    // Check Orders By Status
-    public function checkOrdersByStatus($symbol, $statusId, $interval) {
 
+    public function checkOrdersByStatus($symbol, $statusId, $interval)
+    /*
+     * Use this method instead of checkOrders if you only want to see
+     * orders of certain type.
+     *
+     * API returns:
+     *
+     *   {
+     *      "code": 200,
+     *      "message": "success",
+     *      "data": [
+     *          {
+     *              "Amount": 0.14,
+     *              "Avg_price": 82.3,
+     *              "Create_date": 1476082005827,
+     *              "orderId": 303967,
+     *              "price": 82.3,
+     *              "status": 4,
+     *              "type": "buy"
+     *          },
+     *          {
+     *              "Amount": 1,
+     *              "Avg_price": 88,
+     *              "Create_date": 1476347610387,
+     *              "orderId": 311646,
+     *              "price": 88,
+     *              "status": 4,
+     *              "type": "buy"
+     *          }
+     *      ]
+     *   }
+     */
+    {
         $parametersArray = array(
 
             'apiKey' => $this->apiKey,
@@ -235,9 +303,20 @@ class C2cxApi
         return $data;
     }
 
-    // Cancel Order
-    public function cancelOrder($symbol, $orderId) {
 
+    public function cancelOrder($symbol, $orderId)
+    /*
+     * API returns:
+     *
+     * {
+     *	    "code": 200,
+     *	    "message": "success",
+     *	    "data": [{
+     *	    	"orderId": 243506,
+     *	    }]
+     * }
+     */
+    {
         $parametersArray = array(
 
             'apiKey' => $this->apiKey,
@@ -257,7 +336,8 @@ class C2cxApi
         return ['CNY_BTC', 'CNY_ETC', 'CNY_ETH'];
     }
 
-    public function getOrderStatusString($status)
+
+    public function getOrderStatusString($statusId)
     {
         $orderStatusStrings = [
              "1" => "Pending",
@@ -275,13 +355,14 @@ class C2cxApi
         ];
 
         $result = false;
-        if (isset($orderStatusStrings["$status"])) {
-            $result = $orderStatusStrings["$status"];
+        if (isset($orderStatusStrings["$statusId"])) {
+            $result = $orderStatusStrings["$statusId"];
         }
 
         return $result;
 
     }
+
 
     // Signature
     public function getSignature($parameters)
@@ -298,6 +379,7 @@ class C2cxApi
 
         return $signature;
     }
+
 
     // Get request
     private function getRequest($action, $parameters = null)
@@ -333,6 +415,7 @@ class C2cxApi
         return $json;
     }
 
+
     // Post request
     private function postRequest($action, $parameters = null)
     {
@@ -367,4 +450,5 @@ class C2cxApi
 
         return $json;
     }
+
 }
