@@ -112,7 +112,7 @@ if ($creds) {
     $now = date('Y-m-d H:i:s');
     print "\nSTARTING TESTS @ $now\n";
 
-    print "\n-- Check prices using ticker ------------------------------\n";
+    print "\n-- Check prices using ticker ---------- $now\n";
     //
     // Get last price for each pair from ticker
     //
@@ -145,8 +145,8 @@ if ($creds) {
 
     }
 
-
-    print "\n-- Check prices using Order Book --------------------------\n";
+    $now = date('Y-m-d H:i:s');
+    print "\n-- Check prices using Order Book ------ $now\n";
     //
     // Get last price for each pair from ticker
     //
@@ -189,7 +189,8 @@ if ($creds) {
     }
 
     if ($proceed) {
-        print "\n-- Get balances -------------------------------------------\n";
+        $now = date('Y-m-d H:i:s');
+        print "\n-- Get balances ----------------------- $now\n";
         //
         // Get our balances
         //
@@ -215,7 +216,8 @@ if ($creds) {
     }
 
     if ($proceed) {
-        print "\n-- Make orders --------------------------------------------\n";
+        $now = date('Y-m-d H:i:s');
+        print "\n-- Make orders ------------------------ $now\n";
         //
         // Create an order with each currency that we know will NOT execute
         // right away. We can do this by making an order that requires more
@@ -249,7 +251,8 @@ if ($creds) {
 
 
     if ($proceed) {
-        print "\n-- Check order status -------------------------------------\n";
+        $now = date('Y-m-d H:i:s');
+        print "\n-- Check order status ----------------- $now\n";
         //
         // Next, we check on the status of each successful order
         //
@@ -267,7 +270,7 @@ if ($creds) {
             }
         }
 
-        print "\n-- Cancel orders ------------------------------------------\n";
+        print "\n-- Cancel orders ---------------------- $now\n";
         //
         // Now we will cancel the orders we made
         //
@@ -283,7 +286,8 @@ if ($creds) {
             }
         }
 
-        print "\n-- Check order status again after cancellation ------------\n";
+        $now = date('Y-m-d H:i:s');
+        print "\n-- Check order status again ----------- $now\n";
         //
         // Next, we check on the status of each successful order
         //
@@ -304,7 +308,8 @@ if ($creds) {
     }
 
     print "\nTEST SUMMARY:\n";
-    print "===========================================================\n";
+    $now = date('Y-m-d H:i:s');
+    print "======================================= $now\n";
     //
     // Final report
     //
