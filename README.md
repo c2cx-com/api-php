@@ -12,7 +12,7 @@ Then rename `c2cx-api-creds.sample` to `c2cx-api-creds.json`.
 
 You can then execute `C2cxApiTest.php`.  The script will create impossible orders (for more money than you have, away from the market, this is allowed by C2CX) which will immediatelly be suspended and will not execute, and then the script will cancel them.  If anything goes wrong, it will report.
 
-On C2CX you can submit a buy order even if you have no funds.  The order will be stored but will be placed in the 'Suspended' status.  It will become active when you have funds.
+On C2CX you can submit a buy order even if you have no funds.  The order will be stored but it will not be placed in the order book and will be labeled as being in the 'Suspended' status.  It will become 'active' if and when you have funds to cover it.
 
 `C2cxApiTest.php` is both a test of the API and your keys as well as example of how to deal with C2CX APIs.  Look at the code to understand what it does.  It is well documented.
 
