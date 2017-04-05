@@ -4,7 +4,7 @@
 
 C2CX API documentation site is at https://api.c2cx.com/
 
-Sign up for C2CX at http://c2cx.com/ and generate API keys under Settings|API.
+Sign up for C2CX at https://www.c2cx.com/ and generate API keys under Settings|API after you log in.
 
 After cloning this library with `git clone https://github.com/c2cx-com/c2cx-api-v1-php.git`, first edit `c2cx-api-creds.sample` and replace your API and Secret keys.
 
@@ -14,7 +14,7 @@ You can then execute `C2cxApiTest.php`.  The script will create impossible order
 
 This is both a test of the API and your keys as well as example of how to deal with C2CX APIs.  Look at the code to understand what it does.  It is well documented.
 
-Any time your code does not work and you suspect that there might be a problem with the API, you can run `C2cxApiTest.php` to see if the basic API functionality is up and running correctly. 
+Any time your code does not work and you suspect that there might be a problem with the API, you can run `C2cxApiTest.php` to see if the basic API functionality is up and running correctly.
 
 Sample output of `C2cxApiTest.php`
 ```
