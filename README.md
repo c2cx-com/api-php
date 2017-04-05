@@ -10,6 +10,8 @@ You can then run `C2cxApiTest.php`.  The script will create impossible orders (f
 
 This is both a test of the API and your keys as well as example of how to deal with C2CX APIs.  Look at the code to understand what it does.  It is well documented.
 
+Any time your code does not work and you suspect that there might be a problem with the API, you can run `C2cxApiTest.php` to see if the basic API functionality is up and running correctly. 
+
 Sample output of `C2cxApiTest.php`
 ```
 STARTING TESTS @ 2017-04-05 19:44:07

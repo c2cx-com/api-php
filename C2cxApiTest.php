@@ -332,6 +332,6 @@ if ($creds) {
     print "\nThank you and enjoy trading with C2CX!\n\n";
 
 } else {
-    print "Unable to load credentials, please check the credentials file exists ";
+    print "Unable to load credentials, please check that the credentials file exists ";
     print "and is in valid json format.\n";
 }

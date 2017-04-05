@@ -1,8 +1,7 @@
 <?php
 /*
  * C2CX API PHP Class for Api v1
- *
- * Last update: April 1, 2017
+ * Last update: April 5, 2017
  *
  * Example:
  *
