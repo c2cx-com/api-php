@@ -9,18 +9,15 @@
  * This is used both as a test of the C2CX APIs and example.
  *
  * Not all API calls are tested, but we check the prices & balances,
- * make a few orders which we know will not execute, check their status and
- * then cancel them.
+ * make a few orders, check their status and then cancel them.
  *
- * You can safely run this script, it will create orders which will immediatelly
- * be suspended and will not execute and then it will cancel them.
+ * You can safely run this script.  The orders it creates will immediatelly
+ * be suspended and will not execute.  They will be canceled a few seconds later.
  *
- * The script will report what it is doing and test result.
+ * The script will report what it is doing and give a test result.
  *
  * If you encounter errors you think are our problem please copy and paste the
  * results of this script and send to C2CX Customer Service.
- *
- * Replace your $apiKey and $secretKey and run.
  *
  * Here is a sample output of this script:
  *
@@ -93,10 +90,9 @@ if ($creds_json) {
 }
 
 if ($creds) {
+
     $apiKey = $creds['apiKey'];
     $secretKey = $creds['secretKey'];
-
-    // No need to change anything below this line, but welcome to review
 
     // For our testing
     $proceed = true;
@@ -113,7 +109,7 @@ if ($creds) {
     $now = date('Y-m-d H:i:s');
     print "\nSTARTING TESTS @ $now\n";
 
-    print "\n-- Check prices using ticker --------------------------------------\n";
+    print "\n-- Check prices using ticker ----------------------------------\n";
     //
     // Get last price for each pair from ticker
     //
@@ -131,7 +127,8 @@ if ($creds) {
                 print "Last price for $symbol is " . $call['data']['last'] . "\n";
             } else {
                 $countFail++;
-                print "API ticker call for $symbol succeeded but last price is not greater than 0.\nIgnoring $symbol for further tests.\n";
+                print "API ticker call for $symbol succeeded but last price is
+                not greater than 0.\nIgnoring $symbol for further tests.\n";
             }
 
         } else { // fail
@@ -146,7 +143,7 @@ if ($creds) {
     }
 
 
-    print "\n-- Check prices using Order Book-----------------------------------\n";
+    print "\n-- Check prices using Order Book-------------------------------\n";
     //
     // Get last price for each pair from ticker
     //
@@ -166,10 +163,12 @@ if ($creds) {
                 $ask = $asks[$last][0];
                 $bid = $bids[0][0];
                 $spread = round(($ask - $bid) / (($ask + $bid) / 2) * 100, 2);
-                print "Ask/Bid spread for $symbol from Order Book: $ask/$bid ($spread% spread)\n";
+                print "Ask/Bid spread for $symbol from Order Book: $ask/$bid
+                 ($spread% spread)\n";
             } else {
                 $countFail++;
-                print "API ticker call for $symbol succeeded but Order Book is more than 10 seconds old!\nIgnoring $symbol for further tests.\n";
+                print "API ticker call for $symbol succeeded but Order Book is
+                more than 10 seconds old!\nIgnoring $symbol for further tests.\n";
                 if (isset($price["$symbol"])) {
                     unset($price["$symbol"]);
                 }
@@ -187,7 +186,7 @@ if ($creds) {
     }
 
     if ($proceed) {
-        print "\n-- Get balances -----------------------------------------------\n";
+        print "\n-- Get balances -------------------------------------------\n";
         //
         // Get our balances
         //
@@ -213,12 +212,11 @@ if ($creds) {
     }
 
     if ($proceed) {
-        print "\n-- Make orders ------------------------------------------------\n";
+        print "\n-- Make orders --------------------------------------------\n";
         //
-        // Create an order with each currency that we know will NOT execute right away.
-        // We can do this by making an order that requires more balance than we have
-        // Also 5% away from the market.
-        // C2CX allows this.
+        // Create an order with each currency that we know will NOT execute
+        // right away. We can do this by making an order that requires more
+        // balance than we have. Also 5% away from the market.  C2CX allows this.
         //
         $side = 'Sell';
         $orders = [];
@@ -248,7 +246,7 @@ if ($creds) {
 
 
     if ($proceed) {
-        print "\n-- Check order status -----------------------------------------\n";
+        print "\n-- Check order status -------------------------------------\n";
         //
         // Next, we check on the status of each successful order
         //
@@ -257,7 +255,8 @@ if ($creds) {
             if ($call['code'] == 200) {
                 $countSuccess++;
                 $status = $call['data'][0]['status']; // because there is only one order
-                print "Order ID $orderId for $symbol status is '" . $c2cx->getOrderStatusString($status) . "'\n";
+                print "Order ID $orderId for $symbol status is '" .
+                $c2cx->getOrderStatusString($status) . "'\n";
             } else {
                 $countFail++;
                 print "Was not able to get order status for Order ID $orderId. ";
@@ -265,7 +264,7 @@ if ($creds) {
             }
         }
 
-        print "\n-- Cancel orders ----------------------------------------------\n";
+        print "\n-- Cancel orders ------------------------------------------\n";
         //
         // Now we will cancel the orders we made
         //
@@ -281,7 +280,7 @@ if ($creds) {
             }
         }
 
-        print "\n-- Check order status again after cancellation ----------------\n";
+        print "\n-- Check order status again after cancellation ------------\n";
         //
         // Next, we check on the status of each successful order
         //
@@ -290,7 +289,8 @@ if ($creds) {
             if ($call['code'] == 200) {
                 $countSuccess++;
                 $status = $call['data'][0]['status']; // because there is only one order
-                print "Order ID $orderId for $symbol status is '" . $c2cx->getOrderStatusString($status) . "'\n";
+                print "Order ID $orderId for $symbol status is '" .
+                $c2cx->getOrderStatusString($status) . "'\n";
             } else {
                 $countFail++;
                 print "Was not able to get order status for Order ID $orderId. ";
@@ -301,7 +301,7 @@ if ($creds) {
     }
 
     print "\nTEST SUMMARY:\n";
-    print "=================================================================\n";
+    print "==============================================================\n";
     //
     // Final report
     //
