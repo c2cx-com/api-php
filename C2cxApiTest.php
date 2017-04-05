@@ -19,18 +19,20 @@
  * If you encounter errors you think are our problem please copy and paste the
  * results of this script and send to C2CX Customer Service.
  *
+ * Make sure you edit c2cx-api-creds.sample and replace your API and Secret keys.
+ *
  * Here is a sample output of this script:
  *
  *   niks@niks-vostro:~/c2cx$ ./C2cxApiTest.php
  *
  *   STARTING TESTS @ 2017-04-05 16:33:02
  *
- *   -- Check prices using ticker --------------------------------------
+ *   -- Check prices using ticker ----------------------------------
  *   Last price for CNY_BTC is 7773
  *   Last price for CNY_ETC is 18.4
  *   Last price for CNY_ETH is 306.1
  *
- *   -- Check prices using Order Book-----------------------------------
+ *   -- Check prices using Order Book-------------------------------
  *   Ask/Bid spread for CNY_BTC from Order Book: 7803/7762 (0.53% spread)
  *   Ask/Bid spread for CNY_ETC from Order Book: 18.42/18.27 (0.82% spread)
  *   Ask/Bid spread for CNY_ETH from Order Book: 327.4/324.3 (0.95% spread)
@@ -109,7 +111,7 @@ if ($creds) {
     $now = date('Y-m-d H:i:s');
     print "\nSTARTING TESTS @ $now\n";
 
-    print "\n-- Check prices using ticker ----------------------------------\n";
+    print "\n-- Check prices using ticker ------------------------------\n";
     //
     // Get last price for each pair from ticker
     //
@@ -143,7 +145,7 @@ if ($creds) {
     }
 
 
-    print "\n-- Check prices using Order Book-------------------------------\n";
+    print "\n-- Check prices using Order Book --------------------------\n";
     //
     // Get last price for each pair from ticker
     //
@@ -163,8 +165,8 @@ if ($creds) {
                 $ask = $asks[$last][0];
                 $bid = $bids[0][0];
                 $spread = round(($ask - $bid) / (($ask + $bid) / 2) * 100, 2);
-                print "Ask/Bid spread for $symbol from Order Book: $ask/$bid
-                 ($spread% spread)\n";
+                print "Ask/Bid spread for $symbol from Order Book: $ask/$bid " .
+                 $spread . "% spread)\n";
             } else {
                 $countFail++;
                 print "API ticker call for $symbol succeeded but Order Book is
@@ -301,7 +303,7 @@ if ($creds) {
     }
 
     print "\nTEST SUMMARY:\n";
-    print "==============================================================\n";
+    print "===========================================================\n";
     //
     // Final report
     //
@@ -323,5 +325,6 @@ if ($creds) {
     print "\nThank you and enjoy trading with C2CX!\n\n";
 
 } else {
-    print "Unable to load credentials, please check the credentials file.\n";
+    print "Unable to load credentials, please check the credentials file exists ";
+    print "and is in valid json format.\n";
 }
