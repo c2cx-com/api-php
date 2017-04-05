@@ -76,237 +76,252 @@
  *
  */
 
-require_once("C2cxApi.php");
+require_once("C2cxApiClass.php");
 
 //
-// Change this to yours
+// Load credentials
 //
-$apiKey = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
-$secretKey = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+$creds_file = 'c2cx-api-creds.json';
+$creds_json = false;
+if (file_exists($creds_file)) {
+    $creds_json = file_get_contents('c2cx-api-creds.json');
+}
 
+$creds = false;
+if ($creds_json) {
+    $creds = json_decode($creds_json, true);
+}
 
-// No need to change anything below this line, but welcome to review
+if ($creds) {
+    $apiKey = $creds['apiKey'];
+    $secretKey = $creds['secretKey'];
 
-// For our testing
-$proceed = true;
-$countSuccess = 0;
-$countFail = 0;
+    // No need to change anything below this line, but welcome to review
 
-// Create object
-$c2cx = new C2cxApi($apiKey, $secretKey);
+    // For our testing
+    $proceed = true;
+    $countSuccess = 0;
+    $countFail = 0;
 
-$pairs = $c2cx->getAvailablePairs();
+    // Create object
+    $c2cx = new C2cxApi($apiKey, $secretKey);
 
-// Ready to start testing
-$start_test = time();
-$now = date('Y-m-d H:i:s');
-print "\nSTARTING TESTS @ $now\n";
+    $pairs = $c2cx->getAvailablePairs();
 
-print "\n-- Check prices using ticker --------------------------------------\n";
-//
-// Get last price for each pair from ticker
-//
-$prices = [];
-foreach ($pairs as $symbol) {
+    // Ready to start testing
+    $start_test = time();
+    $now = date('Y-m-d H:i:s');
+    print "\nSTARTING TESTS @ $now\n";
 
-    // Call API
-    $call = $c2cx->getTicker($symbol);
+    print "\n-- Check prices using ticker --------------------------------------\n";
+    //
+    // Get last price for each pair from ticker
+    //
+    $prices = [];
+    foreach ($pairs as $symbol) {
 
-    if ($call['code'] == 200) { // success
+        // Call API
+        $call = $c2cx->getTicker($symbol);
 
-        if ($call['data']['last'] > 0) {
-            $countSuccess++;
-            $price["$symbol"] = $call['data']['last'];
-            print "Last price for $symbol is " . $call['data']['last'] . "\n";
-        } else {
+        if ($call['code'] == 200) { // success
+
+            if ($call['data']['last'] > 0) {
+                $countSuccess++;
+                $price["$symbol"] = $call['data']['last'];
+                print "Last price for $symbol is " . $call['data']['last'] . "\n";
+            } else {
+                $countFail++;
+                print "API ticker call for $symbol succeeded but last price is not greater than 0.\nIgnoring $symbol for further tests.\n";
+            }
+
+        } else { // fail
+
             $countFail++;
-            print "API ticker call for $symbol succeeded but last price is not greater than 0.\nIgnoring $symbol for further tests.\n";
+            $proceed = false;
+            print "Not able to get last price for $symbol. ";
+            print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+
         }
-
-    } else { // fail
-
-        $countFail++;
-        $proceed = false;
-        print "Not able to get last price for $symbol. ";
-        print "Error " . $call['code'] . ": " . $call['message'] . "\n";
 
     }
 
-}
 
+    print "\n-- Check prices using Order Book-----------------------------------\n";
+    //
+    // Get last price for each pair from ticker
+    //
+    foreach ($pairs as $symbol) {
 
-print "\n-- Check prices using Order Book-----------------------------------\n";
-//
-// Get last price for each pair from ticker
-//
-foreach ($pairs as $symbol) {
+        // Call API
+        $call = $c2cx->getOrderBook($symbol);
 
-    // Call API
-    $call = $c2cx->getOrderBook($symbol);
+        if ($call['code'] == 200) { // success
 
-    if ($call['code'] == 200) { // success
+            $now = time();
+            if ($now - $call['data']['timestamp'] < 10) {
+                $countSuccess++;
+                $asks = $call['data']['asks'];
+                $bids = $call['data']['bids'];
+                $last = count($asks)-1;
+                $ask = $asks[$last][0];
+                $bid = $bids[0][0];
+                $spread = round(($ask - $bid) / (($ask + $bid) / 2) * 100, 2);
+                print "Ask/Bid spread for $symbol from Order Book: $ask/$bid ($spread% spread)\n";
+            } else {
+                $countFail++;
+                print "API ticker call for $symbol succeeded but Order Book is more than 10 seconds old!\nIgnoring $symbol for further tests.\n";
+                if (isset($price["$symbol"])) {
+                    unset($price["$symbol"]);
+                }
+            }
 
-        $now = time();
-        if ($now - $call['data']['timestamp'] < 10) {
+        } else { // fail
+
+            $countFail++;
+            $proceed = false;
+            print "Not able to get Order Book for $symbol. ";
+            print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+
+        }
+
+    }
+
+    if ($proceed) {
+        print "\n-- Get balances -----------------------------------------------\n";
+        //
+        // Get our balances
+        //
+        $call = $c2cx->getBalance();
+        if ($call['code'] == 200) {
             $countSuccess++;
-            $asks = $call['data']['asks'];
-            $bids = $call['data']['bids'];
-            $last = count($asks)-1;
-            $ask = $asks[$last][0];
-            $bid = $bids[0][0];
-            $spread = round(($ask - $bid) / (($ask + $bid) / 2) * 100, 2);
-            print "Ask/Bid spread for $symbol from Order Book: $ask/$bid ($spread% spread)\n";
+            $balances = $call['data']['funds'];
         } else {
             $countFail++;
-            print "API ticker call for $symbol succeeded but Order Book is more than 10 seconds old!\nIgnoring $symbol for further tests.\n";
-            if (isset($price["$symbol"])) {
-                unset($price["$symbol"]);
+            $proceed = false;
+            print 'Not able to get balances. ';
+            print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+        }
+    }
+
+    if ($proceed) {
+        // Print available ('free') balances and remember currencies for later
+        $currencies = [];
+        foreach ($balances['free'] as $currency=>$amount) {
+            print "Available $currency balance is $amount\n";
+            $currencies[] = $currency;
+        }
+    }
+
+    if ($proceed) {
+        print "\n-- Make orders ------------------------------------------------\n";
+        //
+        // Create an order with each currency that we know will NOT execute right away.
+        // We can do this by making an order that requires more balance than we have
+        // Also 5% away from the market.
+        // C2CX allows this.
+        //
+        $side = 'Sell';
+        $orders = [];
+        foreach ($currencies as $currency) {
+            $symbol = 'CNY_' . strtoupper($currency);
+            if (in_array($symbol, $pairs) && isset($price["$symbol"])) {
+                $qty = round($balances['free']["$currency"] * 2, 0) + 1; // this won't execute!
+                $ask = round($price["$symbol"] + ($price["$symbol"] * 0.05), 0); // this won't execute!
+                print "Making an order: $side $qty $symbol @ $ask ... ";
+                $call = $c2cx->submitTradeOrder($symbol, $side, $ask, $qty);
+                if ($call['code'] == 200) {
+                    $countSuccess++;
+                    $orderId = $call['data']['orderId'];
+                    $orders["$symbol"] = $orderId;
+                    print "Success.  Order ID: $orderId\n";
+                } else {
+                    $countFail++;
+                    print "Order failed. ";
+                    print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+                }
             }
         }
 
-    } else { // fail
-
-        $countFail++;
-        $proceed = false;
-        print "Not able to get Order Book for $symbol. ";
-        print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+        $proceed = count($orders) > 0;
 
     }
 
-}
 
-if ($proceed) {
-    print "\n-- Get balances -----------------------------------------------\n";
-    //
-    // Get our balances
-    //
-    $call = $c2cx->getBalance();
-    if ($call['code'] == 200) {
-        $countSuccess++;
-        $balances = $call['data']['funds'];
-    } else {
-        $countFail++;
-        $proceed = false;
-        print 'Not able to get balances. ';
-        print "Error " . $call['code'] . ": " . $call['message'] . "\n";
-    }
-}
-
-if ($proceed) {
-    // Print available ('free') balances and remember currencies for later
-    $currencies = [];
-    foreach ($balances['free'] as $currency=>$amount) {
-        print "Available $currency balance is $amount\n";
-        $currencies[] = $currency;
-    }
-}
-
-if ($proceed) {
-    print "\n-- Make orders ------------------------------------------------\n";
-    //
-    // Create an order with each currency that we know will NOT execute right away.
-    // We can do this by making an order that requires more balance than we have
-    // Also 5% away from the market.
-    // C2CX allows this.
-    //
-    $side = 'Sell';
-    $orders = [];
-    foreach ($currencies as $currency) {
-        $symbol = 'CNY_' . strtoupper($currency);
-        if (in_array($symbol, $pairs) && isset($price["$symbol"])) {
-            $qty = round($balances['free']["$currency"] * 2, 0) + 1; // this won't execute!
-            $ask = round($price["$symbol"] + ($price["$symbol"] * 0.05), 0); // this won't execute!
-            print "Making an order: $side $qty $symbol @ $ask ... ";
-            $call = $c2cx->submitTradeOrder($symbol, $side, $ask, $qty);
+    if ($proceed) {
+        print "\n-- Check order status -----------------------------------------\n";
+        //
+        // Next, we check on the status of each successful order
+        //
+        foreach ($orders as $symbol=>$orderId) {
+            $call = $c2cx->checkOrders($symbol, $orderId);
             if ($call['code'] == 200) {
                 $countSuccess++;
-                $orderId = $call['data']['orderId'];
-                $orders["$symbol"] = $orderId;
-                print "Success.  Order ID: $orderId\n";
+                $status = $call['data'][0]['status']; // because there is only one order
+                print "Order ID $orderId for $symbol status is '" . $c2cx->getOrderStatusString($status) . "'\n";
             } else {
                 $countFail++;
-                print "Order failed. ";
+                print "Was not able to get order status for Order ID $orderId. ";
                 print "Error " . $call['code'] . ": " . $call['message'] . "\n";
             }
         }
-    }
 
-    $proceed = count($orders) > 0;
-
-}
-
-
-if ($proceed) {
-    print "\n-- Check order status -----------------------------------------\n";
-    //
-    // Next, we check on the status of each successful order
-    //
-    foreach ($orders as $symbol=>$orderId) {
-        $call = $c2cx->checkOrders($symbol, $orderId);
-        if ($call['code'] == 200) {
-            $countSuccess++;
-            $status = $call['data'][0]['status']; // because there is only one order
-            print "Order ID $orderId for $symbol status is '" . $c2cx->getOrderStatusString($status) . "'\n";
-        } else {
-            $countFail++;
-            print "Was not able to get order status for Order ID $orderId. ";
-            print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+        print "\n-- Cancel orders ----------------------------------------------\n";
+        //
+        // Now we will cancel the orders we made
+        //
+        foreach ($orders as $symbol=>$orderId) {
+            $call = $c2cx->cancelOrder($symbol, $orderId);
+            if ($call['code'] == 200) {
+                $countSuccess++;
+                print "Successfully canceled Order ID $orderId for $symbol.\n";
+            } else {
+                $countFail++;
+                print "Was not able to cancel order ID $orderId! ";
+                print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+            }
         }
-    }
 
-    print "\n-- Cancel orders ----------------------------------------------\n";
-    //
-    // Now we will cancel the orders we made
-    //
-    foreach ($orders as $symbol=>$orderId) {
-        $call = $c2cx->cancelOrder($symbol, $orderId);
-        if ($call['code'] == 200) {
-            $countSuccess++;
-            print "Successfully canceled Order ID $orderId for $symbol.\n";
-        } else {
-            $countFail++;
-            print "Was not able to cancel order ID $orderId! ";
-            print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+        print "\n-- Check order status again after cancellation ----------------\n";
+        //
+        // Next, we check on the status of each successful order
+        //
+        foreach ($orders as $symbol=>$orderId) {
+            $call = $c2cx->checkOrders($symbol, $orderId);
+            if ($call['code'] == 200) {
+                $countSuccess++;
+                $status = $call['data'][0]['status']; // because there is only one order
+                print "Order ID $orderId for $symbol status is '" . $c2cx->getOrderStatusString($status) . "'\n";
+            } else {
+                $countFail++;
+                print "Was not able to get order status for Order ID $orderId. ";
+                print "Error " . $call['code'] . ": " . $call['message'] . "\n";
+            }
         }
+
     }
 
-    print "\n-- Check order status again after cancellation ----------------\n";
+    print "\nTEST SUMMARY:\n";
+    print "=================================================================\n";
     //
-    // Next, we check on the status of each successful order
+    // Final report
     //
-    foreach ($orders as $symbol=>$orderId) {
-        $call = $c2cx->checkOrders($symbol, $orderId);
-        if ($call['code'] == 200) {
-            $countSuccess++;
-            $status = $call['data'][0]['status']; // because there is only one order
-            print "Order ID $orderId for $symbol status is '" . $c2cx->getOrderStatusString($status) . "'\n";
-        } else {
-            $countFail++;
-            print "Was not able to get order status for Order ID $orderId. ";
-            print "Error " . $call['code'] . ": " . $call['message'] . "\n";
-        }
+    $stop_test = time();
+    $elapsed = $stop_test - $start_test;
+    $totalTests = $countSuccess + $countFail;
+    $per = round($elapsed / $totalTests, 2);
+    $rate = round(($countSuccess / $totalTests) * 100, 0);
+    print "Made $totalTests API calls in about $elapsed seconds ($per second per call)\n";
+    print "$countFail failed.\n";
+    print "Success rate is $rate%\n";
+    if ($countFail > 0) {
+        print "\n\nPlease let C2CX Customer Service know if you believe any failure is \n";
+        print "a C2CX server or API problem.\n";
+        print "Double check that your API Key and Secret Key are correct.\n";
+        print "Copy and paste results of this test and send to C2CX Customer Service.\n";
+        print "Remember never send your API key or Secret Key over e-mail or WeChat!\n";
     }
+    print "\nThank you and enjoy trading with C2CX!\n\n";
 
+} else {
+    print "Unable to load credentials, please check the credentials file.\n";
 }
-
-print "\nTEST SUMMARY:\n";
-print "=================================================================\n";
-//
-// Final report
-//
-$stop_test = time();
-$elapsed = $stop_test - $start_test;
-$totalTests = $countSuccess + $countFail;
-$per = round($elapsed / $totalTests, 2);
-$rate = round(($countSuccess / $totalTests) * 100, 0);
-print "Made $totalTests API calls in about $elapsed seconds ($per second per call)\n";
-print "$countFail failed.\n";
-print "Success rate is $rate%\n";
-if ($countFail > 0) {
-    print "\n\nPlease let C2CX Customer Service know if you believe any failure is \n";
-    print "a C2CX server or API problem.\n";
-    print "Double check that your API Key and Secret Key are correct.\n";
-    print "Copy and paste results of this test and send to C2CX Customer Service.\n";
-    print "Remember never send your API key or Secret Key over e-mail or WeChat!\n";
-}
-print "\nThank you and enjoy trading with C2CX!\n\n";

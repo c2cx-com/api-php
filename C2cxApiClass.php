@@ -1,7 +1,7 @@
 <?php
 
 /*
- * C2CX API Class for Api v1
+ * C2CX API PHP Class for Api v1
  *
  * Last update: April 1, 2017
  *
@@ -10,7 +10,12 @@
  * $c2cx = new C2cxApi('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
  * $c2cx->getBalance();
  *
- * See separate c2cx_test.php for more examples.
+ * API returns json, but this class decodes it to an associative array with:
+ * $array = json_decode($api_result, true);
+ *
+ * All API calls in this class return an associative array.
+ *
+ * See separate C2cxApiTest.php for example how to use.
  *
  */
 
@@ -33,7 +38,7 @@ class C2cxApi
 
     public function getTicker($symbol)
      /*
-     * Returns:
+     * API returns:
      *
      * {
      *	  "code": 200,
@@ -62,7 +67,7 @@ class C2cxApi
      * Symbols are case insensitive.  CNY_BTC or cny_btc both work.
      * Asks and bids are returned in the $price=>$volume format.
      *
-     * Returns:
+     * API returns:
      *
      * {
      *     "code": 200,
@@ -97,7 +102,7 @@ class C2cxApi
 
     public function getBalance()
     /*
-     * Returns:
+     * API returns:
      *
      * {
      *   "code": 200,
@@ -154,7 +159,7 @@ class C2cxApi
      *
      * If you get an orderId the order has made it into the Order Book.
      *
-     * Returns:
+     * API returns:
      *
      * {
      *     "code": 200,
