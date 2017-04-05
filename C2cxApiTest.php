@@ -149,7 +149,7 @@ if ($creds) {
     $now = date('Y-m-d H:i:s');
     print "\n-- Check prices using Order Book ------ $now\n";
     //
-    // Get last price for each pair from ticker
+    // Get last price for each pair from Order Book
     //
     foreach ($pairs as $symbol) {
 
