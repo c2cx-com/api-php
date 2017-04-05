@@ -2,7 +2,7 @@
 
 PHP Library for accessing the C2CX APIs and example code
 
-After cloning, first edit `c2cx-api-creds.sample` and replace your API and Secret keys.
+After cloning with `git clone https://github.com/c2cx-com/c2cx-api-v1-php.git`, first edit `c2cx-api-creds.sample` and replace your API and Secret keys.
 
 Then rename `c2cx-api-creds.sample` to `c2cx-api-creds.json`.
 
