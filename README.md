@@ -6,7 +6,7 @@ After cloning with `git clone https://github.com/c2cx-com/c2cx-api-v1-php.git`, 
 
 Then rename `c2cx-api-creds.sample` to `c2cx-api-creds.json`.
 
-You can then run `C2cxApiTest.php`.  The script will create impossible orders (for more money than you have away from the market) which will immediatelly be suspended and will not execute, and then it will cancel them.
+You can then run `C2cxApiTest.php`.  The script will create impossible orders (for more money than you have, away from the market, this is allowed by C2CX) which will immediatelly be suspended and will not execute, and then it will cancel them.
 
 This is both a test of the API and your keys as well as an example of how to deal with C2CX APIs.  Look at the code to understand what it does.  It is well documented.  
 
