@@ -83,7 +83,7 @@ require_once("C2cxApiClass.php");
 $creds_file = 'c2cx-api-creds.json';
 $creds_json = false;
 if (file_exists($creds_file)) {
-    $creds_json = file_get_contents('c2cx-api-creds.json');
+    $creds_json = file_get_contents($creds_file);
 }
 
 $creds = false;
