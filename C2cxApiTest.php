@@ -104,7 +104,7 @@ if ($creds) {
     // Create object
     $c2cx = new C2cxApi($apiKey, $secretKey);
 
-    $pairs = $c2cx->getAvailablePairs();
+    $pairs = $c2cx->getAvailablePairs(); // returns an array
 
     // Ready to start testing
     $start_test = time();
