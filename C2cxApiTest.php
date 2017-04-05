@@ -19,7 +19,8 @@
  * If you encounter errors you think are our problem please copy and paste the
  * results of this script and send to C2CX Customer Service.
  *
- * Make sure you edit c2cx-api-creds.sample and replace your API and Secret keys.
+ * Make sure you edit c2cx-api-creds.sample and replace your API and Secret keys,
+ * then rename the file to c2cx-api-creds.json
  *
  * Here is a sample output of this script:
  *
