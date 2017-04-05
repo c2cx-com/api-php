@@ -54,7 +54,7 @@ Order ID 885794 for CNY_ETC status is 'Canceled'
 
 TEST SUMMARY:
 =================================================================
-Made 19 API calls in about 18 seconds (0.95 second per call)
+Made 19 API calls in about 10 seconds (0.53 second per call)
 0 failed.
 Success rate is 100%
 
